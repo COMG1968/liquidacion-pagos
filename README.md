@@ -1,7 +1,2 @@
-# Liquidación de Pagos
-Aplicación web sencilla para registrar trabajadores, horas diarias, liquidar pagos e imprimir comprobantes.
-
-## Variables de entorno
-Configurar en Vercel:
-- NEXT_PUBLIC_SUPABASE_URL
-- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# Liquidación de Pagos V2
+V2: editar/eliminar liquidaciones, observaciones, estado pendiente/pagado, filtro por trabajador, botón 8h y comprobante imprimible.

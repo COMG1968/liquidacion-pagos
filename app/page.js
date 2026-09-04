@@ -1,22 +1,60 @@
-'use client';
-import {useEffect,useMemo,useState} from 'react';
-import {createClient} from '@supabase/supabase-js';
-import './globals.css';
-const supabase=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0));
-const iso=d=>{const x=new Date(d+'T12:00:00');return x.toLocaleDateString('es-US',{weekday:'short',month:'2-digit',day:'2-digit',year:'numeric'})};
-export default function App(){
- const [view,setView]=useState('liquidar'),[workers,setWorkers]=useState([]),[history,setHistory]=useState([]),[name,setName]=useState(''),[rate,setRate]=useState(''),[wid,setWid]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[days,setDays]=useState([]),[selected,setSelected]=useState(null),[msg,setMsg]=useState('');
- const load=async()=>{let {data}=await supabase.from('trabajadores').select('*').eq('activo',true).order('nombre');setWorkers(data||[]);let {data:h}=await supabase.from('liquidaciones').select('*,trabajadores(nombre)').order('created_at',{ascending:false});setHistory(h||[])};
- useEffect(()=>{load()},[]);
- useEffect(()=>{if(!from||!to||to<from){setDays([]);return}let a=new Date(from+'T12:00:00'),b=new Date(to+'T12:00:00'),arr=[];while(a<=b){arr.push({fecha:a.toISOString().slice(0,10),horas:0});a.setDate(a.getDate()+1)}setDays(arr)},[from,to]);
- const worker=workers.find(w=>String(w.id)===String(wid)); const currentRate=Number(worker?.valor_hora||0); const totalHours=useMemo(()=>days.reduce((s,d)=>s+Number(d.horas||0),0),[days]); const total=totalHours*currentRate;
- async function addWorker(){if(!name.trim()||Number(rate)<=0)return setMsg('Completa nombre y valor hora.');let {error}=await supabase.from('trabajadores').insert({nombre:name.trim(),valor_hora:Number(rate)});if(error)return setMsg(error.message);setName('');setRate('');setMsg('Trabajador guardado.');load()}
- async function save(){if(!worker||!from||!to||!days.length)return setMsg('Selecciona trabajador y rango de fechas.');let {data:l,error}=await supabase.from('liquidaciones').insert({trabajador_id:worker.id,fecha_desde:from,fecha_hasta:to,valor_hora:currentRate,total_horas:totalHours,total_pago:total}).select().single();if(error)return setMsg(error.message);let rows=days.map(d=>({liquidacion_id:l.id,fecha:d.fecha,horas:Number(d.horas||0),valor_hora:currentRate,valor_dia:Number(d.horas||0)*currentRate}));let {error:e}=await supabase.from('detalle_horas').insert(rows);if(e)return setMsg(e.message);setMsg('Liquidación guardada correctamente.');load()}
- async function openPay(h){let {data}=await supabase.from('detalle_horas').select('*').eq('liquidacion_id',h.id).order('fecha');setSelected({...h,detalle:data||[]});setView('comprobante')}
- return <main className="wrap"><header className="head"><h1>Liquidación de Pagos</h1><div>Control sencillo de pagos de personal por horas</div></header><nav className="nav no-print"><button onClick={()=>setView('liquidar')}>+ Nueva liquidación</button><button onClick={()=>setView('trabajadores')}>👥 Trabajadores</button><button onClick={()=>setView('historial')}>📋 Historial</button></nav>{msg&&<div className="card no-print">{msg}</div>}
- {view==='trabajadores'&&<section className="card"><h2>Trabajadores</h2><div className="grid"><div><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre completo"/></label></div><div><label>Valor por hora<input type="number" step="0.01" value={rate} onChange={e=>setRate(e.target.value)} placeholder="18.00"/></label></div></div><div className="actions"><button className="primary" onClick={addWorker}>Guardar trabajador</button></div><table><thead><tr><th>Nombre</th><th className="num">Valor/hora</th></tr></thead><tbody>{workers.map(w=><tr key={w.id}><td>{w.nombre}</td><td className="num">{money(w.valor_hora)}</td></tr>)}</tbody></table></section>}
- {view==='liquidar'&&<section className="card"><h2>Nueva liquidación</h2><div className="grid"><label>Trabajador<select value={wid} onChange={e=>setWid(e.target.value)}><option value="">Seleccionar...</option>{workers.map(w=><option key={w.id} value={w.id}>{w.nombre}</option>)}</select></label><label>Valor hora<input value={worker?money(currentRate):''} disabled/></label><label>Desde<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>Hasta<input type="date" value={to} onChange={e=>setTo(e.target.value)}/></label></div>{days.length>0&&<><table><thead><tr><th>Fecha</th><th>Horas</th><th className="num">Valor día</th></tr></thead><tbody>{days.map((d,i)=><tr key={d.fecha}><td>{iso(d.fecha)}</td><td><input type="number" min="0" step="0.25" value={d.horas} onChange={e=>setDays(days.map((x,j)=>j===i?{...x,horas:e.target.value}:x))}/></td><td className="num">{money(Number(d.horas||0)*currentRate)}</td></tr>)}</tbody></table><p className="total">Total: {totalHours.toFixed(2)} h — {money(total)}</p><div className="actions"><button className="primary" onClick={save}>Guardar liquidación</button><button className="secondary" onClick={()=>window.print()}>Imprimir</button></div></>}</section>}
- {view==='historial'&&<section className="card"><h2>Historial de pagos</h2><table><thead><tr><th>Trabajador</th><th>Período</th><th className="num">Horas</th><th className="num">Pago</th><th></th></tr></thead><tbody>{history.map(h=><tr key={h.id}><td>{h.trabajadores?.nombre}</td><td>{h.fecha_desde} a {h.fecha_hasta}</td><td className="num">{h.total_horas}</td><td className="num">{money(h.total_pago)}</td><td><button onClick={()=>openPay(h)}>Ver</button></td></tr>)}</tbody></table></section>}
- {view==='comprobante'&&selected&&<section className="card"><h2>COMPROBANTE DE PAGO</h2><p><b>Trabajador:</b> {selected.trabajadores?.nombre}<br/><b>Período:</b> {selected.fecha_desde} al {selected.fecha_hasta}<br/><b>Valor hora:</b> {money(selected.valor_hora)}</p><table><thead><tr><th>Fecha</th><th className="num">Horas</th><th className="num">Valor/hora</th><th className="num">Pago</th></tr></thead><tbody>{selected.detalle.map(d=><tr key={d.id}><td>{iso(d.fecha)}</td><td className="num">{d.horas}</td><td className="num">{money(d.valor_hora)}</td><td className="num">{money(d.valor_dia)}</td></tr>)}</tbody></table><p className="total">TOTAL A PAGAR: {money(selected.total_pago)}</p><div className="actions no-print"><button className="primary" onClick={()=>window.print()}>🖨️ Imprimir comprobante</button><button className="secondary" onClick={()=>setView('historial')}>Volver</button></div></section>}</main>
+'use client'
+import {useEffect,useMemo,useState} from 'react'
+import {createClient} from '@supabase/supabase-js'
+
+const supabase=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0))
+const iso=d=>{const x=new Date(d+'T12:00:00');return x.toLocaleDateString('es-US',{weekday:'short',month:'2-digit',day:'2-digit',year:'numeric'})}
+const days=(a,b)=>{if(!a||!b)return[];let out=[],d=new Date(a+'T12:00:00'),e=new Date(b+'T12:00:00');while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out}
+
+export default function Page(){
+ const [tab,setTab]=useState('new'),[workers,setWorkers]=useState([]),[history,setHistory]=useState([])
+ const [worker,setWorker]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[rows,setRows]=useState([])
+ const [rate,setRate]=useState(''),[obs,setObs]=useState(''),[status,setStatus]=useState('pendiente'),[editId,setEditId]=useState(null)
+ const [name,setName]=useState(''),[newRate,setNewRate]=useState(''),[filter,setFilter]=useState('')
+ useEffect(()=>{loadWorkers();loadHistory()},[])
+ async function loadWorkers(){let {data}=await supabase.from('trabajadores').select('*').order('nombre');setWorkers(data||[])}
+ async function loadHistory(){let {data}=await supabase.from('liquidaciones').select('*, trabajadores(nombre)').order('created_at',{ascending:false});setHistory(data||[])}
+ function chooseWorker(id){setWorker(id);let w=workers.find(x=>String(x.id)===String(id));setRate(w?.valor_hora||'')}
+ function makeRows(a,b,old={}){setRows(days(a,b).map(fecha=>({fecha,horas:old[fecha]??''})))}
+ const totalHours=useMemo(()=>rows.reduce((s,r)=>s+Number(r.horas||0),0),[rows])
+ const total=totalHours*Number(rate||0)
+ async function addWorker(){if(!name.trim()||!newRate)return alert('Completa nombre y valor hora');let {error}=await supabase.from('trabajadores').insert({nombre:name.trim(),valor_hora:Number(newRate)});if(error)return alert(error.message);setName('');setNewRate('');await loadWorkers();alert('Trabajador guardado')}
+ async function save(){
+  if(!worker||!from||!to||!rate)return alert('Completa trabajador, fechas y valor hora')
+  let payload={trabajador_id:Number(worker),fecha_desde:from,fecha_hasta:to,valor_hora:Number(rate),total_horas:totalHours,total_pago:total,observaciones:obs||null,estado:status}
+  let id=editId
+  if(editId){let {error}=await supabase.from('liquidaciones').update(payload).eq('id',editId);if(error)return alert(error.message);await supabase.from('detalle_horas').delete().eq('liquidacion_id',editId)}
+  else {let {data,error}=await supabase.from('liquidaciones').insert(payload).select('id').single();if(error)return alert(error.message);id=data.id}
+  let det=rows.filter(r=>Number(r.horas)>0).map(r=>({liquidacion_id:id,fecha:r.fecha,horas:Number(r.horas),valor_hora:Number(rate),valor_dia:Number(r.horas)*Number(rate)}))
+  if(det.length){let {error}=await supabase.from('detalle_horas').insert(det);if(error)return alert(error.message)}
+  reset();await loadHistory();setTab('history');alert(editId?'Liquidación actualizada':'Liquidación guardada')
+ }
+ function reset(){setWorker('');setFrom('');setTo('');setRows([]);setRate('');setObs('');setStatus('pendiente');setEditId(null)}
+ async function editPay(p){let {data}=await supabase.from('detalle_horas').select('*').eq('liquidacion_id',p.id);let old={};(data||[]).forEach(x=>old[x.fecha]=x.horas);setEditId(p.id);setWorker(String(p.trabajador_id));setRate(p.valor_hora);setFrom(p.fecha_desde);setTo(p.fecha_hasta);setObs(p.observaciones||'');setStatus(p.estado||'pendiente');makeRows(p.fecha_desde,p.fecha_hasta,old);setTab('new')}
+ async function delPay(p){if(!confirm('¿Eliminar esta liquidación? Esta acción no se puede deshacer.'))return;let {error}=await supabase.from('liquidaciones').delete().eq('id',p.id);if(error)return alert(error.message);loadHistory()}
+ async function printPay(p){let {data}=await supabase.from('detalle_horas').select('*').eq('liquidacion_id',p.id).order('fecha');setWorker(String(p.trabajador_id));setRate(p.valor_hora);setFrom(p.fecha_desde);setTo(p.fecha_hasta);setObs(p.observaciones||'');setStatus(p.estado||'pendiente');setRows((data||[]).map(x=>({fecha:x.fecha,horas:x.horas})));setTimeout(()=>window.print(),150)}
+ const filtered=history.filter(h=>!filter||String(h.trabajador_id)===filter)
+ return <main>
+  <header className="hero"><h1>Liquidación de Pagos</h1><p>Control sencillo de pagos de personal por horas</p></header>
+  <nav className="nav no-print"><button onClick={()=>{reset();setTab('new')}}>+ Nueva liquidación</button><button onClick={()=>setTab('workers')}>👥 Trabajadores</button><button onClick={()=>setTab('history')}>📋 Historial</button></nav>
+
+  {tab==='workers'&&<section className="card no-print"><h2>Trabajadores</h2><div className="grid"><div className="field"><label>Nombre</label><input value={name} onChange={e=>setName(e.target.value)}/></div><div className="field"><label>Valor hora</label><input type="number" step="0.01" value={newRate} onChange={e=>setNewRate(e.target.value)}/></div></div><div className="actions"><button className="primary" onClick={addWorker}>Guardar trabajador</button></div><h3>Personal registrado</h3>{workers.map(w=><div key={w.id}>{w.nombre} — <b>{money(w.valor_hora)}/h</b></div>)}</section>}
+
+  {tab==='new'&&<section className="card receipt"><h2>{editId?'Editar liquidación':'Nueva liquidación'}</h2><div className="grid no-print">
+   <div className="field"><label>Trabajador</label><select value={worker} onChange={e=>chooseWorker(e.target.value)}><option value="">Seleccionar...</option>{workers.map(w=><option key={w.id} value={w.id}>{w.nombre}</option>)}</select></div>
+   <div className="field"><label>Valor hora</label><input type="number" step="0.01" value={rate} onChange={e=>setRate(e.target.value)}/></div>
+   <div className="field"><label>Desde</label><input type="date" value={from} onChange={e=>{setFrom(e.target.value);makeRows(e.target.value,to)}}/></div>
+   <div className="field"><label>Hasta</label><input type="date" value={to} onChange={e=>{setTo(e.target.value);makeRows(from,e.target.value)}}/></div>
+  </div>
+  <div className="print-only"><h3>{workers.find(w=>String(w.id)===String(worker))?.nombre}</h3><p>Período: {from&&iso(from)} — {to&&iso(to)} &nbsp; | &nbsp; Valor hora: {money(rate)}</p></div>
+  {rows.length>0&&<><table><thead><tr><th>Fecha</th><th>Horas</th><th className="money">Valor día</th></tr></thead><tbody>{rows.map((r,i)=><tr key={r.fecha}><td>{iso(r.fecha)}</td><td><span className="print-only">{r.horas||0}</span><div className="no-print"><input type="number" min="0" step=".25" value={r.horas} onChange={e=>{let a=[...rows];a[i].horas=e.target.value;setRows(a)}}/><button className="quick" onClick={()=>{let a=[...rows];a[i].horas=8;setRows(a)}}>8 h</button></div></td><td className="money">{money(Number(r.horas||0)*Number(rate||0))}</td></tr>)}</tbody></table>
+  <div className="grid" style={{marginTop:16}}><div><b>Total horas:</b> {totalHours.toFixed(2)}</div><div className="total">TOTAL: {money(total)}</div></div>
+  <div className="grid no-print" style={{marginTop:16}}><div className="field"><label>Estado</label><select value={status} onChange={e=>setStatus(e.target.value)}><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option></select></div><div className="field"><label>Observaciones</label><textarea value={obs} onChange={e=>setObs(e.target.value)}/></div></div>
+  <div className="print-only"><p><b>Estado:</b> {status==='pagado'?'Pagado':'Pendiente'}</p>{obs&&<p><b>Observaciones:</b> {obs}</p>}<br/><p>Firma quien paga: _______________________</p><br/><p>Firma quien recibe: _____________________</p></div>
+  <div className="actions no-print"><button className="success" onClick={save}>{editId?'Guardar cambios':'Guardar liquidación'}</button><button onClick={()=>window.print()}>🖨️ Imprimir</button>{editId&&<button onClick={reset}>Cancelar edición</button>}</div></>}</section>}
+
+  {tab==='history'&&<section className="card no-print"><h2>Historial</h2><div className="field"><label>Filtrar por trabajador</label><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="">Todos</option>{workers.map(w=><option key={w.id} value={w.id}>{w.nombre}</option>)}</select></div>
+  <table><thead><tr><th>Trabajador</th><th>Período</th><th>Horas</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{filtered.map(p=><tr key={p.id}><td>{p.trabajadores?.nombre}</td><td>{p.fecha_desde} / {p.fecha_hasta}</td><td>{p.total_horas}</td><td>{money(p.total_pago)}</td><td><span className="badge">{p.estado||'pendiente'}</span></td><td><div className="actions"><button onClick={()=>editPay(p)}>Editar</button><button onClick={()=>printPay(p)}>Imprimir</button><button className="danger" onClick={()=>delPay(p)}>Eliminar</button></div></td></tr>)}</tbody></table></section>}
+ </main>
 }
