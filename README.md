@@ -1,3 +1,3 @@
-# Liquidación de Pagos V3.2.1
+# Liquidación de Pagos V3.3
 
-Corrección de compilación de V3.2. Mantiene nombre del día, ajustes de suma/resta, concepto y Gran Total.
+Agrega editar y eliminar trabajadores. Eliminar oculta al trabajador de la lista sin borrar sus liquidaciones históricas.
