@@ -35,3 +35,10 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
  .receipt-print .print-only{display:block!important}
  .receipt-print,.receipt-print *{max-height:none!important;overflow:visible!important}
 }
+
+/* V3.4.1: impresión siempre Media Carta vertical (Half Letter Portrait) */
+@media print{
+ @page{size:5.5in 8.5in;margin:.18in!important}
+ html,body{width:5.14in!important;height:auto!important;margin:0!important;padding:0!important}
+ .receipt-print{width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important}
+}
