@@ -49,9 +49,9 @@ export default function Page(){
  async function delPay(p){if(!confirm('¿Eliminar esta liquidación?'))return;let {error}=await sb.from('liquidaciones').delete().eq('id',p.id);if(error)return alert(error.message);loadHistory()}
  async function printPay(p){let {data}=await sb.from('detalle_horas').select('*').eq('liquidacion_id',p.id).order('fecha');let {data:ad}=await sb.from('ajustes_liquidacion').select('*').eq('liquidacion_id',p.id).order('id');setAdjustments((ad||[]).map(a=>({tipo:a.tipo,concepto:a.concepto,valor:a.valor})));setWorker(String(p.trabajador_id));setRate(p.valor_hora);setFrom(p.fecha_desde);setTo(p.fecha_hasta);setObs(p.observaciones||'');setStatus(p.estado||'pendiente');setMethod(p.metodo_pago_id?String(p.metodo_pago_id):'');setRows((data||[]).map(x=>({fecha:x.fecha,horas:x.horas})));setTab('new');setTimeout(()=>window.print(),200)}
  async function runReport(a=rFrom,b=rTo){if(!a||!b)return alert('Selecciona el rango');let {data,error}=await sb.from('liquidaciones').select('*, trabajadores(nombre), metodos_pago(nombre)').lte('fecha_desde',b).gte('fecha_hasta',a).order('fecha_desde');if(error)return alert(error.message);setReport(data||[])}
- const reportHours=report.reduce((s,p)=>s+Number(p.total_horas||0),0),reportTotal=report.reduce((s,p)=>s+Number(p.gran_total??p.total_pago||0),0)
- const paidTotal=report.filter(p=>p.estado==='pagado').reduce((s,p)=>s+Number(p.gran_total??p.total_pago||0),0)
- const byMethod=report.filter(p=>p.estado==='pagado').reduce((a,p)=>{let k=p.metodos_pago?.nombre||'Sin especificar';a[k]=(a[k]||0)+Number(p.gran_total??p.total_pago||0);return a},{})
+ const reportHours=report.reduce((s,p)=>s+Number(p.total_horas||0),0),reportTotal=report.reduce((s,p)=>s+Number((p.gran_total??p.total_pago)||0),0)
+ const paidTotal=report.filter(p=>p.estado==='pagado').reduce((s,p)=>s+Number((p.gran_total??p.total_pago)||0),0)
+ const byMethod=report.filter(p=>p.estado==='pagado').reduce((a,p)=>{let k=p.metodos_pago?.nombre||'Sin especificar';a[k]=(a[k]||0)+Number((p.gran_total??p.total_pago)||0);return a},{})
  const filtered=history.filter(h=>!filter||String(h.trabajador_id)===filter)
  return <main>
  <header className="hero"><h1>Liquidación de Pagos</h1><p>Control de pagos de personal</p></header>

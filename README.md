@@ -1,3 +1,3 @@
-# Liquidación de Pagos V3.2
+# Liquidación de Pagos V3.2.1
 
-Incluye nombre del día y ajustes adicionales de suma/resta con concepto y Gran Total.
+Corrección de compilación de V3.2. Mantiene nombre del día, ajustes de suma/resta, concepto y Gran Total.
