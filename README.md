@@ -1,3 +1,3 @@
-# Liquidación de Pagos V3.3
+# Liquidación de Pagos V3.4
 
-Agrega editar y eliminar trabajadores. Eliminar oculta al trabajador de la lista sin borrar sus liquidaciones históricas.
+Impresión optimizada para media carta: contenido completo, controles compactados al imprimir y sin recortes.
