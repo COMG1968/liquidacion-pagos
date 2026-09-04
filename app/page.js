@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from 'react'
 import {createClient} from '@supabase/supabase-js'
 const sb=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0))
-const labelDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-US',{month:'2-digit',day:'2-digit',year:'numeric'}):''
+const labelDate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-US',{weekday:'long',month:'2-digit',day:'2-digit',year:'numeric'}).replace(/^./,c=>c.toUpperCase()):''
 const dateDays=(a,b)=>{if(!a||!b)return[];let o=[],d=new Date(a+'T12:00:00'),e=new Date(b+'T12:00:00');while(d<=e){o.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return o}
 const today=()=>new Date().toISOString().slice(0,10)
 
