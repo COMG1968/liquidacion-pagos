@@ -18,3 +18,5 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
  .receipt-print .total{font-size:14pt}.report-print{display:block!important;width:100%;max-height:10.35in;overflow:hidden}.report-print h2{margin:0 0 5px}
  .report-print table{font-size:8pt}.report-print th,.report-print td{padding:3px 4px}.report-print .summary{grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.report-print .stat{padding:6px}.report-print .stat b{font-size:13pt}
 }
+
+.worker-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e5e7eb}.worker-row .actions{margin:0}@media(max-width:650px){.worker-row{align-items:flex-start;flex-direction:column}.worker-row .actions{width:100%}.worker-row .actions button{flex:1}}

@@ -11,12 +11,12 @@ export default function Page(){
  const [tab,setTab]=useState('new'),[workers,setWorkers]=useState([]),[history,setHistory]=useState([]),[methods,setMethods]=useState([])
  const [worker,setWorker]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[rows,setRows]=useState([]),[rate,setRate]=useState('')
  const [obs,setObs]=useState(''),[status,setStatus]=useState('pendiente'),[method,setMethod]=useState(''),[editId,setEditId]=useState(null),[adjustments,setAdjustments]=useState([])
- const [name,setName]=useState(''),[rateType,setRateType]=useState('hora'),[newRate,setNewRate]=useState('')
+ const [name,setName]=useState(''),[rateType,setRateType]=useState('hora'),[newRate,setNewRate]=useState(''),[editWorkerId,setEditWorkerId]=useState(null)
  const [methodName,setMethodName]=useState(''),[filter,setFilter]=useState('')
  const [rFrom,setRFrom]=useState(today()),[rTo,setRTo]=useState(today()),[report,setReport]=useState([])
  useEffect(()=>{loadAll()},[])
  async function loadAll(){await Promise.all([loadWorkers(),loadHistory(),loadMethods()])}
- async function loadWorkers(){let {data}=await sb.from('trabajadores').select('*').order('nombre');setWorkers(data||[])}
+ async function loadWorkers(){let {data}=await sb.from('trabajadores').select('*').eq('activo',true).order('nombre');setWorkers(data||[])}
  async function loadHistory(){let {data}=await sb.from('liquidaciones').select('*, trabajadores(nombre), metodos_pago(nombre)').order('created_at',{ascending:false});setHistory(data||[])}
  async function loadMethods(){let {data}=await sb.from('metodos_pago').select('*').eq('activo',true).order('nombre');setMethods(data||[])}
  function makeRows(a,b,old={}){setRows(dateDays(a,b).map(fecha=>({fecha,horas:old[fecha]??''})))}
@@ -26,9 +26,13 @@ export default function Page(){
  async function addWorker(){
   if(!name.trim()||!newRate)return alert('Completa nombre y tarifa')
   let hourly=rateType==='dia'?Number(newRate)/8:Number(newRate),daily=rateType==='dia'?Number(newRate):Number(newRate)*8
-  let {error}=await sb.from('trabajadores').insert({nombre:name.trim(),valor_hora:hourly,valor_dia:daily,tipo_tarifa:rateType})
-  if(error)return alert(error.message);setName('');setNewRate('');await loadWorkers();alert('Trabajador guardado')
+  let payload={nombre:name.trim(),valor_hora:hourly,valor_dia:daily,tipo_tarifa:rateType,activo:true}
+  let q=editWorkerId?sb.from('trabajadores').update(payload).eq('id',editWorkerId):sb.from('trabajadores').insert(payload)
+  let {error}=await q;if(error)return alert(error.message)
+  setName('');setNewRate('');setRateType('hora');setEditWorkerId(null);await loadWorkers();alert(editWorkerId?'Trabajador actualizado':'Trabajador guardado')
  }
+ function startEditWorker(w){setName(w.nombre);setRateType(w.tipo_tarifa||'hora');setNewRate(String((w.tipo_tarifa||'hora')==='dia'?(w.valor_dia??Number(w.valor_hora)*8):w.valor_hora));setEditWorkerId(w.id);window.scrollTo({top:0,behavior:'smooth'})}
+ async function deleteWorker(w){if(!confirm(`¿Eliminar a ${w.nombre} de la lista de trabajadores?\n\nSus liquidaciones anteriores se conservarán.`))return;let {error}=await sb.from('trabajadores').update({activo:false}).eq('id',w.id);if(error)return alert(error.message);if(String(worker)===String(w.id))setWorker('');await loadWorkers();alert('Trabajador eliminado. Su historial se conserva.')}
  async function addMethod(){if(!methodName.trim())return;let {error}=await sb.from('metodos_pago').insert({nombre:methodName.trim()});if(error)return alert(error.message);setMethodName('');loadMethods()}
  async function save(){
   if(!worker||!from||!to||!rate)return alert('Completa trabajador, fechas y tarifa')
@@ -61,8 +65,8 @@ export default function Page(){
  <div className="field"><label>Nombre</label><input value={name} onChange={e=>setName(e.target.value)}/></div>
  <div className="field"><label>Tipo de tarifa</label><select value={rateType} onChange={e=>setRateType(e.target.value)}><option value="hora">Valor hora</option><option value="dia">Valor día (8 horas)</option></select></div>
  <div className="field"><label>{rateType==='dia'?'Valor día':'Valor hora'}</label><input type="number" step=".01" value={newRate} onChange={e=>setNewRate(e.target.value)}/>{rateType==='dia'&&newRate&&<small>Valor hora automático: <b>{money(Number(newRate)/8)}</b></small>}</div></div>
- <div className="actions"><button className="primary" onClick={addWorker}>Guardar trabajador</button></div>
- <h3>Personal registrado</h3>{workers.map(w=><p key={w.id}>{w.nombre} — <b>{money(w.valor_hora)}/h</b>{w.valor_dia?<> — {money(w.valor_dia)}/día</>:null}</p>)}
+ <div className="actions"><button className="primary" onClick={addWorker}>{editWorkerId?'Guardar cambios':'Guardar trabajador'}</button>{editWorkerId&&<button onClick={()=>{setEditWorkerId(null);setName('');setNewRate('');setRateType('hora')}}>Cancelar edición</button>}</div>
+ <h3>Personal registrado</h3>{workers.map(w=><div key={w.id} className="worker-row"><div><b>{w.nombre}</b> — {money(w.valor_hora)}/h{w.valor_dia?<> — {money(w.valor_dia)}/día</>:null}</div><div className="actions"><button onClick={()=>startEditWorker(w)}>✏️ Editar</button><button className="danger" onClick={()=>deleteWorker(w)}>🗑️ Eliminar</button></div></div>)}
  <hr/><h3>Opciones de pago</h3><div className="grid"><div className="field"><label>Nueva opción</label><input placeholder="Ej. Chase, Bank of America..." value={methodName} onChange={e=>setMethodName(e.target.value)}/></div></div><div className="actions"><button onClick={addMethod}>+ Crear opción de pago</button></div><p>{methods.map(m=>m.nombre).join(' · ')}</p></section>}
 
  {tab==='new'&&<section className="card receipt-print"><h2>{editId?'Editar liquidación':'Nueva liquidación'}</h2>
