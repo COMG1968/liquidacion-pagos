@@ -1,2 +1,2 @@
-# Liquidación de Pagos V2
-V2: editar/eliminar liquidaciones, observaciones, estado pendiente/pagado, filtro por trabajador, botón 8h y comprobante imprimible.
+# Liquidación de Pagos V3
+Tarifa por hora/día, métodos de pago personalizables, interfaz móvil mejorada, informes por rango/hoy, comprobante individual de media hoja Letter e informe máximo una hoja Letter.
