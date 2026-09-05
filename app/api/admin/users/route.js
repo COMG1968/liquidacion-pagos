@@ -28,6 +28,10 @@ async function removeLegacyCollision(a,email,phone,adminId){
 }
 export async function POST(req){
  try{const auth=await authorize(req);if(!auth)return NextResponse.json({error:'No autorizado'},{status:401});const b=await req.json();
+  if(b.action==='list'){
+   const {data,error}=await auth.a.from('usuarios_app').select('*').order('created_at',{ascending:false});if(error)throw error
+   return NextResponse.json({ok:true,users:data||[]})
+  }
   if(b.action==='create'){
    const email=b.email?String(b.email).trim().toLowerCase():null,phone=b.phone?String(b.phone).replace(/[^0-9+]/g,''):null
    if((!email&&!phone)||!b.password||b.password.length<8||!b.trabajador_id)return NextResponse.json({error:'Correo y/o teléfono, trabajador y contraseña de mínimo 8 caracteres son obligatorios'},{status:400})
