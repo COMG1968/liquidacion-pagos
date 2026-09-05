@@ -14,3 +14,5 @@ V3.16: acceso unificado por trabajador (correo + teléfono en una sola identidad
 
 ## v3.20
 Corrección definitiva de autorización del endpoint `/api/admin/users`: la sesión del administrador se valida contra `/auth/v1/user` usando la misma publishable key del frontend; las operaciones administrativas siguen usando exclusivamente `SUPABASE_SECRET_KEY` en el servidor.
+
+V3.21: botones de envío WhatsApp/Gmail siempre visibles para accesos vinculados; se deshabilitan solo si falta ese dato.
