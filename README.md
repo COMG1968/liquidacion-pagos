@@ -1,20 +1,8 @@
-# Liquidación de Pagos v3.15
+# Liquidación de Pagos v3.23
 
-Corrección del flujo de liquidaciones rechazadas:
-- La liquidación rechazada permanece cerrada y visible en el historial.
-- El trabajador ve el comentario/motivo del administrador.
-- Botón “Crear nueva para este período” inicia una liquidación nueva para las mismas fechas.
-- La nueva liquidación no copia horas ni ajustes de la rechazada; comienza limpia.
-- Las liquidaciones rechazadas y anuladas no bloquean un nuevo período.
-- Se conserva el flujo Devolver = corregir la misma / Rechazar = crear una nueva.
-
-
-V3.16: acceso unificado por trabajador (correo + teléfono en una sola identidad), migración de historial Andrea al trabajador activo.
-
-
-## v3.20
-Corrección definitiva de autorización del endpoint `/api/admin/users`: la sesión del administrador se valida contra `/auth/v1/user` usando la misma publishable key del frontend; las operaciones administrativas siguen usando exclusivamente `SUPABASE_SECRET_KEY` en el servidor.
-
-V3.21: botones de envío WhatsApp/Gmail siempre visibles para accesos vinculados; se deshabilitan solo si falta ese dato.
-
-V3.22: carga de cuentas de trabajadores por endpoint administrativo seguro. Corrige el caso donde el panel mostraba 'No hay cuentas' pese a que el acceso ya existía; los botones WhatsApp/Gmail se muestran sin recrear el usuario.
+Corrección del panel de accesos:
+- Muestra todos los usuarios trabajadores existentes en Supabase Auth, no solo filas de usuarios_app.
+- Recupera accesos creados que hayan quedado con perfil incompleto.
+- Permite vincular/reparar un acceso desde el endpoint administrativo seguro.
+- Mantiene botones WhatsApp, Gmail y nueva clave temporal.
+- No modifica liquidaciones, impresión ni historial.

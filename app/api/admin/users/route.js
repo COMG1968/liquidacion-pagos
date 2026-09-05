@@ -29,8 +29,25 @@ async function removeLegacyCollision(a,email,phone,adminId){
 export async function POST(req){
  try{const auth=await authorize(req);if(!auth)return NextResponse.json({error:'No autorizado'},{status:401});const b=await req.json();
   if(b.action==='list'){
-   const {data,error}=await auth.a.from('usuarios_app').select('*').order('created_at',{ascending:false});if(error)throw error
-   return NextResponse.json({ok:true,users:data||[]})
+   // Fuente robusta: combina perfiles de la app con usuarios reales de Supabase Auth.
+   // Así un acceso ya creado nunca desaparece del panel aunque su perfil haya quedado incompleto.
+   const {data:profiles,error}=await auth.a.from('usuarios_app').select('*').order('created_at',{ascending:false});if(error)throw error
+   const byId=new Map((profiles||[]).map(p=>[p.user_id,p]))
+   let page=1,authUsers=[]
+   while(page<=10){const {data,error:ae}=await auth.a.auth.admin.listUsers({page,perPage:100});if(ae)throw ae;const batch=data?.users||[];authUsers.push(...batch);if(batch.length<100)break;page++}
+   const merged=authUsers.filter(u=>u.id!==auth.user.id).map(u=>{const p=byId.get(u.id)||{};return {...p,user_id:u.id,email:p.email||u.email||null,telefono:p.telefono||u.phone||null,rol:p.rol||'trabajador',activo:p.activo??false,trabajador_id:p.trabajador_id||null,orphan:!byId.has(u.id)}})
+   // Incluye también perfiles no presentes en Auth para que el administrador pueda diagnosticarlos/desactivarlos.
+   for(const p of (profiles||[])){if(p.rol!=='administrador'&&!merged.some(u=>u.user_id===p.user_id))merged.push({...p,auth_missing:true})}
+   return NextResponse.json({ok:true,users:merged})
+  }
+  if(b.action==='link'){
+   if(!b.user_id||!b.trabajador_id)return NextResponse.json({error:'Usuario y trabajador son obligatorios'},{status:400})
+   const wid=Number(b.trabajador_id)
+   const {data:other}=await auth.a.from('usuarios_app').select('user_id').eq('trabajador_id',wid).eq('activo',true).neq('user_id',b.user_id)
+   for(const x of (other||[]))await auth.a.from('usuarios_app').update({trabajador_id:null,activo:false}).eq('user_id',x.user_id)
+   const {data:au,error:gue}=await auth.a.auth.admin.getUserById(b.user_id);if(gue)throw gue
+   const {error:le}=await auth.a.from('usuarios_app').upsert({user_id:b.user_id,email:au?.user?.email||null,telefono:au?.user?.phone||null,trabajador_id:wid,rol:'trabajador',activo:true},{onConflict:'user_id'});if(le)throw le
+   return NextResponse.json({ok:true})
   }
   if(b.action==='create'){
    const email=b.email?String(b.email).trim().toLowerCase():null,phone=b.phone?String(b.phone).replace(/[^0-9+]/g,''):null
