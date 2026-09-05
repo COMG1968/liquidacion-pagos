@@ -1,7 +1,8 @@
-# Liquidación de Pagos v3.11
+# Liquidación de Pagos V3.12
 
-Mejora del panel de accesos:
-- Botón explícito **Vincular y activar** para cuentas pendientes.
-- Al activar un acceso para un trabajador, cualquier acceso anterior de ese mismo trabajador queda desvinculado/desactivado para evitar cruces.
-- Una vez activo aparecen **Enviar aplicación**, **Nueva clave temporal** y **Desactivar**.
-- Mantiene v3.10: liquidaciones recibidas, correo/teléfono, cambio obligatorio de clave, valor hora/día y control de semanas duplicadas.
+Envío directo del acceso del trabajador.
+
+- Si el acceso tiene teléfono, **Enviar aplicación** abre WhatsApp directamente al número vinculado con el mensaje preparado.
+- Si el acceso solo tiene correo, abre el cliente de correo dirigido a ese email.
+- Mantiene confirmación previa con nombre y destino enmascarado.
+- Conserva funciones de V3.11, portal trabajador, bandeja de liquidaciones recibidas y media carta vertical.
