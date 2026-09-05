@@ -10,3 +10,7 @@ Corrección del flujo de liquidaciones rechazadas:
 
 
 V3.16: acceso unificado por trabajador (correo + teléfono en una sola identidad), migración de historial Andrea al trabajador activo.
+
+
+## v3.20
+Corrección definitiva de autorización del endpoint `/api/admin/users`: la sesión del administrador se valida contra `/auth/v1/user` usando la misma publishable key del frontend; las operaciones administrativas siguen usando exclusivamente `SUPABASE_SECRET_KEY` en el servidor.

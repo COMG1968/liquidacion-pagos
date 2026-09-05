@@ -1,11 +1,16 @@
 import {createClient} from '@supabase/supabase-js'
 import {NextResponse} from 'next/server'
-const url=process.env.NEXT_PUBLIC_SUPABASE_URL,secret=process.env.SUPABASE_SECRET_KEY
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL,secret=process.env.SUPABASE_SECRET_KEY,publishable=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 function adminClient(){return createClient(url,secret,{auth:{autoRefreshToken:false,persistSession:false}})}
 async function authorize(req){
  const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');if(!token)return null
- if(!url||!secret)throw new Error('Configuración de Supabase incompleta en el servidor')
- const a=adminClient();const {data:{user},error:ue}=await a.auth.getUser(token);if(ue||!user)return null
+ if(!url||!secret||!publishable)throw new Error('Configuración de Supabase incompleta en el servidor')
+ // Validar la sesión exactamente contra el mismo proyecto/clave pública que usa el navegador.
+ // Esto evita que el cliente administrativo intente interpretar la sesión del usuario.
+ const vr=await fetch(`${url}/auth/v1/user`,{headers:{apikey:publishable,authorization:`Bearer ${token}`},cache:'no-store'})
+ if(!vr.ok)return null
+ const user=await vr.json();if(!user?.id)return null
+ const a=adminClient()
  const {data:p,error:pe}=await a.from('usuarios_app').select('rol,activo').eq('user_id',user.id).maybeSingle();if(pe)throw pe
  return p?.rol==='administrador'&&p?.activo?{a,user}:null
 }
