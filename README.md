@@ -1,6 +1,7 @@
-# Liquidación de Pagos v3.9
+# Liquidación de Pagos v3.11
 
-- Acceso de trabajadores por correo o teléfono de EE. UU. + contraseña.
-- Valor hora y valor día sincronizados automáticamente (8 horas).
-- Si una semana ya existe, el portal abre la liquidación editable o informa su estado en vez de crear un duplicado.
-- Conserva portal administrador/trabajador, revisión, RLS, ajustes e impresión media carta vertical.
+Mejora del panel de accesos:
+- Botón explícito **Vincular y activar** para cuentas pendientes.
+- Al activar un acceso para un trabajador, cualquier acceso anterior de ese mismo trabajador queda desvinculado/desactivado para evitar cruces.
+- Una vez activo aparecen **Enviar aplicación**, **Nueva clave temporal** y **Desactivar**.
+- Mantiene v3.10: liquidaciones recibidas, correo/teléfono, cambio obligatorio de clave, valor hora/día y control de semanas duplicadas.
