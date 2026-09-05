@@ -1,8 +1,7 @@
-# Liquidación de Pagos V3.12
+# Liquidación de Pagos v3.13
 
-Envío directo del acceso del trabajador.
-
-- Si el acceso tiene teléfono, **Enviar aplicación** abre WhatsApp directamente al número vinculado con el mensaje preparado.
-- Si el acceso solo tiene correo, abre el cliente de correo dirigido a ese email.
-- Mantiene confirmación previa con nombre y destino enmascarado.
-- Conserva funciones de V3.11, portal trabajador, bandeja de liquidaciones recibidas y media carta vertical.
+- Botones de envío separados y seguros por trabajador.
+- WhatsApp abre directamente el número registrado con el mensaje preparado.
+- Gmail abre directamente el compositor de Gmail con destinatario, asunto y mensaje preparados.
+- Solo aparece cada botón cuando ese acceso tiene el dato correspondiente.
+- Conserva v3.12: liquidaciones recibidas, flujo de revisión, contraseña temporal, acceso por correo/teléfono, tarifas hora/día y control de semanas duplicadas.
