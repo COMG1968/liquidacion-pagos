@@ -1,7 +1,3 @@
-# Liquidación de Pagos v3.13
+# Liquidación de Pagos v3.14
 
-- Botones de envío separados y seguros por trabajador.
-- WhatsApp abre directamente el número registrado con el mensaje preparado.
-- Gmail abre directamente el compositor de Gmail con destinatario, asunto y mensaje preparados.
-- Solo aparece cada botón cuando ese acceso tiene el dato correspondiente.
-- Conserva v3.12: liquidaciones recibidas, flujo de revisión, contraseña temporal, acceso por correo/teléfono, tarifas hora/día y control de semanas duplicadas.
+Aislamiento estricto por trabajador, envío al administrador, bloqueo de períodos superpuestos, anulación con historial, desvinculación de acceso y anulación de trabajadores. Conserva correo/teléfono, Gmail/WhatsApp, tarifa hora/día e impresión media carta vertical.
