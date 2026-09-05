@@ -35,10 +35,10 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
  .receipt-print .print-only{display:block!important}
  .receipt-print,.receipt-print *{max-height:none!important;overflow:visible!important}
 }
-
-/* V3.4.1: impresión siempre Media Carta vertical (Half Letter Portrait) */
+.hero{display:flex;align-items:center;justify-content:space-between;gap:12px}.logout{background:#fff;color:#173f70;white-space:nowrap}.login-card{max-width:460px;margin:40px auto}.login-card .field{margin-bottom:14px}.worker-nav{grid-template-columns:1fr 1fr;max-width:650px;margin:auto}.notify{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;border-radius:20px;background:#a92a2a;color:#fff;margin-left:4px}.review-note{margin-top:8px;min-width:230px;min-height:60px}
+@media(max-width:700px){.hero{align-items:flex-start}.logout{padding:9px 10px}.worker-nav{grid-template-columns:1fr 1fr}.review-note{min-width:190px}}
 @media print{
- @page{size:5.5in 8.5in;margin:.18in!important}
- html,body{width:5.14in!important;height:auto!important;margin:0!important;padding:0!important}
- .receipt-print{width:100%!important;height:auto!important;max-height:none!important;overflow:visible!important}
+ @page{size:5.5in 8.5in;margin:.16in}
+ .receipt-print{width:5.18in!important;max-width:5.18in!important;margin:0 auto!important}
+ .report-print{width:5.18in!important;max-width:5.18in!important;margin:0 auto!important;max-height:8.18in!important}
 }
