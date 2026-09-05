@@ -1,11 +1,14 @@
 import {createClient} from '@supabase/supabase-js'
 import {NextResponse} from 'next/server'
-const url=process.env.NEXT_PUBLIC_SUPABASE_URL,secret=process.env.SUPABASE_SECRET_KEY
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL,secret=process.env.SUPABASE_SECRET_KEY,publishable=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 function adminClient(){return createClient(url,secret,{auth:{autoRefreshToken:false,persistSession:false}})}
+function verifyClient(){return createClient(url,publishable,{auth:{autoRefreshToken:false,persistSession:false}})}
 async function authorize(req){
  const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');if(!token)return null
- const a=adminClient();const {data:{user}}=await a.auth.getUser(token);if(!user)return null
- const {data:p}=await a.from('usuarios_app').select('rol,activo').eq('user_id',user.id).single();return p?.rol==='administrador'&&p?.activo?{a,user}:null
+ if(!url||!secret||!publishable)throw new Error('Configuración de Supabase incompleta en el servidor')
+ const v=verifyClient();const {data:{user},error:ue}=await v.auth.getUser(token);if(ue||!user)return null
+ const a=adminClient();const {data:p,error:pe}=await a.from('usuarios_app').select('rol,activo').eq('user_id',user.id).maybeSingle();if(pe)throw pe
+ return p?.rol==='administrador'&&p?.activo?{a,user}:null
 }
 async function removeLegacyCollision(a,email,phone,adminId){
  let page=1
