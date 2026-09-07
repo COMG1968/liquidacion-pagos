@@ -1,0 +1,13 @@
+ACTUALIZACION LIQUIDACION DE PAGOS
+====================================
+Archivos incluidos:
+- app/globals.css
+- public/sunland-logo.png
+
+Objetivo:
+- Impresion media carta vertical 5.5 x 8.5 pulgadas.
+- Encabezado naranja SUNLAND TRUSS con logo original.
+- Compactar la liquidacion sin recortar informacion.
+- Ajustes y GRAN TOTAL alineados al final.
+
+No modifica Supabase, usuarios, liquidaciones ni calculos.
