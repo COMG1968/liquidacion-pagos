@@ -1,4 +1,3 @@
-
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#152033;font-family:Arial,sans-serif}main{max-width:1080px;margin:auto;padding:8px}
 .hero{background:linear-gradient(135deg,#173f70,#255d99);color:#fff;padding:28px 24px;border-radius:0 0 18px 18px}.hero h1{margin:0 0 8px;font-size:34px}.hero p{margin:0}
 .nav{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:18px 0}.nav button{min-height:58px;font-size:16px}
@@ -10,195 +9,33 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
 .quick{font-size:12px;padding:7px 9px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:15px 0}.stat{padding:15px;background:#f2f6fb;border-radius:12px}.stat b{display:block;font-size:22px;margin-top:4px}
 .print-only{display:none}.report-print{display:none}
 @media(max-width:700px){main{padding:6px}.hero{padding:22px 18px}.hero h1{font-size:28px}.nav{grid-template-columns:1fr 1fr;gap:8px}.nav button{min-height:68px;font-size:16px;padding:12px 8px}.grid,.summary{grid-template-columns:1fr}.card{padding:15px}table{font-size:13px;display:block;overflow-x:auto}.actions button{min-height:50px;flex:1}.total{font-size:21px}}
-
-
-
 .worker-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e5e7eb}.worker-row .actions{margin:0}@media(max-width:650px){.worker-row{align-items:flex-start;flex-direction:column}.worker-row .actions{width:100%}.worker-row .actions button{flex:1}}
-
-
 .hero{display:flex;align-items:center;justify-content:space-between;gap:12px}.logout{background:#fff;color:#173f70;white-space:nowrap}.login-card{max-width:460px;margin:40px auto}.login-card .field{margin-bottom:14px}.worker-nav{grid-template-columns:1fr 1fr;max-width:650px;margin:auto}.notify{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;border-radius:20px;background:#a92a2a;color:#fff;margin-left:4px}.review-note{margin-top:8px;min-width:230px;min-height:60px}
 @media(max-width:700px){.hero{align-items:flex-start}.logout{padding:9px 10px}.worker-nav{grid-template-columns:1fr 1fr}.review-note{min-width:190px}}
 
-
-/* v3.24 — impresión media carta vertical: mayor legibilidad sin recortar */
-
-
-/* v3.25 — media carta vertical aprovechada a mayor escala */
-
-
-/* Compactación de emergencia: solo si el navegador detecta demasiadas líneas no puede
-   hacerse por CSS puro; se conserva break-inside para mantener una sola media carta. */
-
-
-/* =========================================================
-   v3.27 — IMPRESIÓN DEFINITIVA MEDIA CARTA
-   Una sola regla final de impresión para evitar conflictos.
-   ========================================================= */
-
-
-
-/* v3.28 — OVERRIDE FINAL: MEDIA CARTA VERTICAL REAL */
-
-
-/* ============================================================
-   v3.29 - UNICA CONFIGURACION DE IMPRESION
-   MEDIA CARTA VERTICAL 5.5 x 8.5 pulgadas
-   ============================================================ */
-@page {
-  size: 5.5in 8.5in;
-  margin: 0;
-}
-
+/* v3.30 - media carta vertical, tipografia equilibrada y contenido completo */
+@page { size:5.5in 8.5in; margin:0; }
 @media print {
-  html, body {
-    width: 5.5in !important;
-    height: 8.5in !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-  }
-
-  main {
-    width: 5.5in !important;
-    max-width: 5.5in !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .no-print, .nav, header.hero { display: none !important; }
-  .print-only { display: block !important; }
-
-  .receipt-print {
-    width: 5.20in !important;
-    height: 8.18in !important;
-    max-width: 5.20in !important;
-    max-height: 8.18in !important;
-    margin: .15in auto !important;
-    padding: .12in .14in !important;
-    overflow: hidden !important;
-    border: 1px solid #777 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    transform: none !important;
-    zoom: 1 !important;
-    font-size: 15pt !important;
-    line-height: 1.15 !important;
-  }
-
-  .receipt-print > h2 { display:none !important; }
-
-  .print-head {
-    display:grid !important;
-    grid-template-columns:.82in 1fr .82in !important;
-    align-items:center !important;
-    min-height:.72in !important;
-    border-bottom:3px solid #f58220 !important;
-    margin-bottom:.10in !important;
-  }
-  .print-head img { width:.72in !important; height:.52in !important; object-fit:contain !important; }
-  .print-title { text-align:center !important; font-size:18pt !important; font-weight:900 !important; }
-  .print-meta { text-align:right !important; font-size:7pt !important; }
-
-  .receipt-print > .print-only:not(:last-of-type) h3 {
-    font-size:30pt !important;
-    line-height:1 !important;
-    margin:.05in 0 .08in !important;
-    font-weight:900 !important;
-  }
-  .receipt-print > .print-only:not(:last-of-type) p {
-    font-size:16pt !important;
-    line-height:1.15 !important;
-    margin:0 0 .10in !important;
-    font-weight:700 !important;
-  }
-
-  .receipt-print table {
-    display:table !important;
-    width:100% !important;
-    table-layout:fixed !important;
-    border-collapse:collapse !important;
-    font-size:16pt !important;
-    line-height:1.1 !important;
-    margin:.05in 0 .10in !important;
-    overflow:visible !important;
-  }
-  .receipt-print thead { display:table-header-group !important; }
-  .receipt-print tbody { display:table-row-group !important; }
-  .receipt-print tr { display:table-row !important; height:.47in !important; }
-  .receipt-print th, .receipt-print td {
-    display:table-cell !important;
-    font-size:16pt !important;
-    padding:.07in .05in !important;
-    vertical-align:middle !important;
-    border-bottom:1px solid #aaa !important;
-  }
-  .receipt-print th { font-size:15pt !important; font-weight:900 !important; background:#eee !important; }
-
-  .receipt-print > div.grid[style*="margin-top: 10px"] {
-    display:grid !important;
-    grid-template-columns:1fr 1fr !important;
-    align-items:center !important;
-    margin:.08in 0 .12in !important;
-    padding:.10in .04in !important;
-    border-top:2px solid #444 !important;
-    border-bottom:2px solid #444 !important;
-    font-size:16pt !important;
-  }
-  .receipt-print > div.grid[style*="margin-top: 10px"] > div:last-child { text-align:right !important; }
-  .receipt-print .total { font-size:20pt !important; font-weight:900 !important; }
-
-  .adjustments-print {
-    position:static !important;
-    display:block !important;
-    min-height:1.25in !important;
-    margin:.10in 0 !important;
-    padding:.11in .12in !important;
-    background:#f5f5f5 !important;
-    border:1px solid #bbb !important;
-  }
-  .adjustments-print > h3 {
-    position:static !important;
-    font-size:18pt !important;
-    margin:0 0 .08in !important;
-    padding-bottom:.06in !important;
-    border-bottom:1px solid #888 !important;
-    font-weight:900 !important;
-  }
-  .adjustments-print > .grid { display:none !important; }
-  .adjustments-print > p:not(.total), .adjustment-line {
-    display:block !important;
-    text-align:right !important;
-    font-size:16pt !important;
-    margin:.05in 0 !important;
-    font-weight:700 !important;
-  }
-  .adjustments-print > .total {
-    text-align:right !important;
-    font-size:22pt !important;
-    margin:.10in 0 0 !important;
-    padding-top:.08in !important;
-    border-top:2px solid #333 !important;
-    font-weight:900 !important;
-  }
-
-  .receipt-print > .print-only:last-of-type {
-    margin-top:.14in !important;
-    padding-top:.10in !important;
-    border-top:1px solid #777 !important;
-  }
-  .receipt-print > .print-only:last-of-type p {
-    font-size:13pt !important;
-    line-height:1.2 !important;
-    margin:.07in 0 !important;
-  }
-
-  .receipt-print input, .receipt-print select,
-  .receipt-print textarea, .receipt-print button { display:none !important; }
-
-  .report-print {
-    display:block !important;
-    width:5.20in !important;
-    max-width:5.20in !important;
-    max-height:8.18in !important;
-  }
+ html,body{width:5.5in!important;height:8.5in!important;margin:0!important;padding:0!important;background:white!important}
+ main{width:5.5in!important;max-width:5.5in!important;margin:0!important;padding:0!important}
+ .no-print,.nav,header.hero{display:none!important}.print-only{display:block!important}
+ .receipt-print{width:5.20in!important;height:8.18in!important;max-width:5.20in!important;max-height:8.18in!important;margin:.15in auto!important;padding:.12in .14in!important;overflow:hidden!important;border:1px solid #777!important;border-radius:0!important;box-shadow:none!important;transform:none!important;zoom:1!important;font-size:11pt!important;line-height:1.12!important}
+ .receipt-print>h2{display:none!important}
+ .print-head{display:grid!important;grid-template-columns:.82in 1fr .82in!important;align-items:center!important;min-height:.62in!important;border-bottom:3px solid #f58220!important;margin-bottom:.07in!important}
+ .print-head img{width:.72in!important;height:.52in!important;object-fit:contain!important}.print-title{text-align:center!important;font-size:16pt!important;font-weight:900!important}.print-meta{text-align:right!important;font-size:7pt!important}
+ .receipt-print>.print-only:not(:last-of-type) h3{font-size:22pt!important;line-height:1!important;margin:.04in 0 .06in!important;font-weight:900!important}
+ .receipt-print>.print-only:not(:last-of-type) p{font-size:12pt!important;line-height:1.12!important;margin:0 0 .07in!important;font-weight:700!important}
+ .receipt-print table{display:table!important;width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:11pt!important;line-height:1.08!important;margin:.03in 0 .07in!important;overflow:visible!important}
+ .receipt-print thead{display:table-header-group!important}.receipt-print tbody{display:table-row-group!important}.receipt-print tr{display:table-row!important;height:.34in!important}
+ .receipt-print th,.receipt-print td{display:table-cell!important;font-size:11pt!important;padding:.035in .05in!important;vertical-align:middle!important;border-bottom:1px solid #aaa!important}
+ .receipt-print th{font-size:12pt!important;font-weight:900!important;background:#eee!important}
+ .receipt-print>div.grid[style*="margin-top: 10px"]{display:grid!important;grid-template-columns:1fr 1fr!important;align-items:center!important;margin:.06in 0 .08in!important;padding:.07in .04in!important;border-top:2px solid #444!important;border-bottom:2px solid #444!important;font-size:12pt!important}
+ .receipt-print>div.grid[style*="margin-top: 10px"]>div{font-size:12pt!important}.receipt-print>div.grid[style*="margin-top: 10px"]>div:last-child{text-align:right!important}.receipt-print .total{font-size:16pt!important;font-weight:900!important}
+ .adjustments-print{position:static!important;display:block!important;min-height:1.05in!important;margin:.07in 0!important;padding:.08in .10in!important;background:#f5f5f5!important;border:1px solid #bbb!important}
+ .adjustments-print>h3{position:static!important;font-size:14pt!important;margin:0 0 .05in!important;padding-bottom:.04in!important;border-bottom:1px solid #888!important;font-weight:900!important}
+ .adjustments-print>.grid{display:none!important}.adjustments-print>p:not(.total),.adjustment-line{display:block!important;text-align:right!important;font-size:11pt!important;margin:.035in 0!important;font-weight:700!important}
+ .adjustments-print>.total{text-align:right!important;font-size:18pt!important;margin:.07in 0 0!important;padding-top:.05in!important;border-top:2px solid #333!important;font-weight:900!important}
+ .receipt-print>.print-only:last-of-type{margin-top:.08in!important;padding-top:.06in!important;border-top:1px solid #777!important}.receipt-print>.print-only:last-of-type p{font-size:9.5pt!important;line-height:1.15!important;margin:.04in 0!important}
+ .receipt-print input,.receipt-print select,.receipt-print textarea,.receipt-print button{display:none!important}
+ .report-print{display:block!important;width:5.20in!important;max-width:5.20in!important;max-height:8.18in!important}
 }
