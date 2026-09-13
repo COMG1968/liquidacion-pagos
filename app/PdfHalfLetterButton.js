@@ -5,7 +5,14 @@ export default function PdfHalfLetterButton(){
  const [visible,setVisible]=useState(false)
  useEffect(()=>{
   const check=()=>{const r=document.querySelector('.receipt-print');setVisible(!!(r&&r.querySelector('tbody tr')))}
-  check();const o=new MutationObserver(check);o.observe(document.body,{childList:true,subtree:true});return()=>o.disconnect()
+  check();const o=new MutationObserver(check);o.observe(document.body,{childList:true,subtree:true})
+  const intercept=e=>{
+   const b=e.target?.closest?.('button');if(!b)return
+   const text=(b.textContent||'').trim().toLowerCase()
+   if(text.includes('imprimir')&&!text.includes('pdf')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();makePdf()}
+  }
+  document.addEventListener('click',intercept,true)
+  return()=>{o.disconnect();document.removeEventListener('click',intercept,true)}
  },[])
  async function makePdf(){
   const r=document.querySelector('.receipt-print');if(!r)return alert('Abre primero una liquidación.')
