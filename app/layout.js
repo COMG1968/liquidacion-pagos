@@ -2,6 +2,7 @@ import './globals.css'
 import PdfHalfLetterButton from './PdfHalfLetterButton'
 import AdvancedReports from './AdvancedReports'
 import PaymentManager from './PaymentManager'
+import LiquidationPaymentBox from './LiquidationPaymentBox'
 export const metadata={title:'Liquidación de Pagos',description:'Control de pagos por horas'}
 
 const printEnhancer=`
@@ -19,5 +20,5 @@ const printEnhancer=`
 })();
 `;
 export default function RootLayout({children}){
- return <html lang="es"><body>{children}<PaymentManager/><AdvancedReports/><PdfHalfLetterButton/><script dangerouslySetInnerHTML={{__html:printEnhancer}}/></body></html>
+ return <html lang="es"><body>{children}<LiquidationPaymentBox/><PaymentManager/><AdvancedReports/><PdfHalfLetterButton/><script dangerouslySetInnerHTML={{__html:printEnhancer}}/></body></html>
 }
