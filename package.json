@@ -1,6 +1,6 @@
 {
   "name": "liquidacion-pagos",
-  "version": "3.0.0",
+  "version": "3.32.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "next": "^15.5.2",
+    "pdf-lib": "^1.17.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   }
