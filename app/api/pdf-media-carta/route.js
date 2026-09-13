@@ -1,54 +1,28 @@
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib'
 
-// Media carta REAL horizontal: 8.5 x 5.5 pulgadas
+// El diseño de la liquidación sigue horizontal (8.5 x 5.5), pero la HOJA final es media carta vertical (5.5 x 8.5).
 const W=8.5*72,H=5.5*72,M=14
 const orange=rgb(.96,.45,.08),pale=rgb(1,.91,.76),ink=rgb(.04,.06,.08),gray=rgb(.92,.92,.92),line=rgb(.48,.48,.48),red=rgb(.85,.03,.03),green=rgb(.03,.55,.10),white=rgb(1,1,1)
 const clean=s=>String(s||'').replace(/[^\x20-\x7E\u00C0-\u00FF]/g,'-')
 const fit=(text,font,size,max)=>{let t=clean(text);while(t.length&&font.widthOfTextAtSize(t,size)>max)t=t.slice(0,-1);return t}
 const right=(p,t,xRight,y,size,font,color=ink)=>p.drawText(clean(t),{x:xRight-font.widthOfTextAtSize(clean(t),size),y,size,font,color})
 const center=(p,t,x1,x2,y,size,font,color=ink)=>{const s=clean(t),w=font.widthOfTextAtSize(s,size);p.drawText(s,{x:x1+(x2-x1-w)/2,y,size,font,color})}
-function parseAdjustment(a){
- const s=clean(a).trim();const neg=/^\s*(?:\(\s*-\s*\)|-|−)/.test(s);const pos=/^\s*(?:\(\s*\+\s*\)|\+)/.test(s)
- const sign=neg?'-':'+';const noSign=s.replace(/^\s*(?:\(\s*[+\-−]\s*\)|[+\-−])\s*/,'').trim()
- const m=noSign.match(/^(.*?)(?:\s*:\s*)?(\$\s*[\d,.]+)\s*$/);return {sign,label:(m?.[1]||noSign).replace(/:\s*$/,''),value:m?.[2]||'',negative:neg,positive:pos||!neg}
-}
-export async function POST(req){
- try{
-  const d=await req.json();const pdf=await PDFDocument.create();const p=pdf.addPage([W,H]);const bold=await pdf.embedFont(StandardFonts.HelveticaBold),reg=await pdf.embedFont(StandardFonts.Helvetica)
-  p.drawRectangle({x:5,y:5,width:W-10,height:H-10,borderWidth:.8,borderColor:line})
-  p.drawRectangle({x:M,y:H-70,width:W-2*M,height:55,color:orange})
-  // logo gráfico Sunland Truss al lado izquierdo
-  const lx=M+12,ly=H-59
-  p.drawLine({start:{x:lx,y:ly+15},end:{x:lx+31,y:ly+34},thickness:2.2,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+62,y:ly+15},thickness:2.2,color:ink});p.drawLine({start:{x:lx,y:ly+15},end:{x:lx+62,y:ly+15},thickness:2.2,color:ink})
-  p.drawLine({start:{x:lx+10,y:ly+15},end:{x:lx+31,y:ly+34},thickness:1,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+52,y:ly+15},thickness:1,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+31,y:ly+15},thickness:1,color:ink})
-  p.drawText('SUNLAND TRUSS',{x:lx-1,y:ly+2,size:8.5,font:bold,color:ink})
-  p.drawLine({start:{x:lx+76,y:H-64},end:{x:lx+76,y:H-21},thickness:1.2,color:ink})
-  center(p,'LIQUIDACION DE PAGOS',150,500,H-43,22,bold,ink);center(p,'MIAMI, FLORIDA',150,500,H-59,8.5,bold,ink)
-
-  const top=H-88
-  p.drawText('TRABAJADOR:',{x:M+6,y:top,size:8,font:bold,color:line});p.drawText(fit(clean(d.worker).toUpperCase(),bold,20,270),{x:M+6,y:top-24,size:20,font:bold,color:ink})
-  // periodo centrado en la mitad derecha; elimina el duplicado "Periodo: Periodo:"
-  let period=clean(d.period).replace(/^\s*Per[ií]odo\s*:\s*/i,'').trim();const periodText='Periodo: '+period
-  center(p,fit(periodText,reg,8.5,300),300,W-M-8,top-9,8.5,reg,ink)
-
-  let y=top-42;const x0=M+6,x2=300,x4=W-M-6
-  p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,color:gray,borderWidth:.5,borderColor:line});p.drawText('Fecha',{x:x0+48,y:y-13,size:9,font:bold,color:ink});p.drawText('Horas',{x:x2+18,y:y-13,size:9,font:bold,color:ink});right(p,'Valor dia',x4-10,y-13,9,bold);y-=18
-  const rows=(d.rows||[]).slice(0,7)
-  for(const r of rows){p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,borderWidth:.35,borderColor:line});p.drawText(fit(r[0],reg,8,240),{x:x0+8,y:y-13,size:8,font:reg,color:ink});p.drawText(clean(r[1]),{x:x2+22,y:y-13,size:8,font:reg,color:ink});right(p,r[2],x4-8,y-13,8,reg);y-=18}
-  p.drawRectangle({x:x0,y:y-22,width:x4-x0,height:22,color:gray,borderWidth:.6,borderColor:line});p.drawText(clean(d.totalHours||'Total horas:'),{x:x0+8,y:y-15,size:9.5,font:bold,color:ink});right(p,d.total||'TOTAL:',x4-8,y-16,12,bold);y-=29
-
-  p.drawRectangle({x:x0,y:y-20,width:x4-x0,height:20,color:pale,borderWidth:.5,borderColor:line});p.drawText('Ajustes adicionales',{x:x0+8,y:y-15,size:12,font:bold,color:ink});y-=20
-  const adjustments=(d.adjustments||[]).filter(Boolean).slice(0,3)
-  for(const raw of adjustments){
-   const a=parseAdjustment(raw),c=a.negative?red:ink
-   p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,color:white,borderWidth:.35,borderColor:line})
-   p.drawText(fit(a.label,reg,9,400),{x:x0+8,y:y-13,size:9,font:reg,color:ink})
-   // signo grande y valor alineado al extremo derecho; negativos en rojo
-   p.drawText(a.sign,{x:x4-92,y:y-14,size:15,font:bold,color:a.negative?red:green});right(p,a.value,x4-8,y-13,10.5,bold,c);y-=18
-  }
-  p.drawRectangle({x:x0,y:y-25,width:x4-x0,height:25,color:pale,borderWidth:.5,borderColor:line});right(p,d.grandTotal||'GRAN TOTAL:',x4-10,y-18,16,bold);y-=36
-  const footerLines=clean(d.footer).split('\n').filter(Boolean),status=footerLines.find(s=>/^Estado:/i.test(s))||'Estado: Pendiente';p.drawText(status,{x:x0+6,y,size:9.5,font:bold,color:ink})
-  p.drawText('Firma quien paga',{x:x0+70,y:y-29,size:8,font:reg,color:ink});p.drawLine({start:{x:x0+8,y:y-19},end:{x:x0+175,y:y-19},thickness:.7,color:ink});p.drawText('Firma quien recibe',{x:x0+360,y:y-29,size:8,font:reg,color:ink});p.drawLine({start:{x:x0+300,y:y-19},end:{x:x4-8,y:y-19},thickness:.7,color:ink})
-  const bytes=await pdf.save();return new Response(bytes,{headers:{'content-type':'application/pdf','content-disposition':'inline; filename="liquidacion-media-carta-horizontal.pdf"','cache-control':'no-store'}})
- }catch(e){return Response.json({error:e.message},{status:500})}
-}
+function parseAdjustment(a){const s=clean(a).trim(),neg=/^\s*(?:\(\s*-\s*\)|-|−)/.test(s),sign=neg?'-':'+',noSign=s.replace(/^\s*(?:\(\s*[+\-−]\s*\)|[+\-−])\s*/,'').trim(),m=noSign.match(/^(.*?)(?:\s*:\s*)?(\$\s*[\d,.]+)\s*$/);return{sign,label:(m?.[1]||noSign).replace(/:\s*$/,''),value:m?.[2]||'',negative:neg}}
+export async function POST(req){try{
+ const d=await req.json();
+ // Primero se construye el comprobante exactamente con el diseño horizontal aprobado.
+ const source=await PDFDocument.create(),p=source.addPage([W,H]),bold=await source.embedFont(StandardFonts.HelveticaBold),reg=await source.embedFont(StandardFonts.Helvetica)
+ p.drawRectangle({x:5,y:5,width:W-10,height:H-10,borderWidth:.8,borderColor:line});p.drawRectangle({x:M,y:H-70,width:W-2*M,height:55,color:orange})
+ const lx=M+12,ly=H-59;p.drawLine({start:{x:lx,y:ly+15},end:{x:lx+31,y:ly+34},thickness:2.2,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+62,y:ly+15},thickness:2.2,color:ink});p.drawLine({start:{x:lx,y:ly+15},end:{x:lx+62,y:ly+15},thickness:2.2,color:ink});p.drawLine({start:{x:lx+10,y:ly+15},end:{x:lx+31,y:ly+34},thickness:1,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+52,y:ly+15},thickness:1,color:ink});p.drawLine({start:{x:lx+31,y:ly+34},end:{x:lx+31,y:ly+15},thickness:1,color:ink});p.drawText('SUNLAND TRUSS',{x:lx-1,y:ly+2,size:8.5,font:bold,color:ink});p.drawLine({start:{x:lx+76,y:H-64},end:{x:lx+76,y:H-21},thickness:1.2,color:ink});center(p,'LIQUIDACION DE PAGOS',150,500,H-43,22,bold,ink);center(p,'MIAMI, FLORIDA',150,500,H-59,8.5,bold,ink)
+ const top=H-88;p.drawText('TRABAJADOR:',{x:M+6,y:top,size:8,font:bold,color:line});p.drawText(fit(clean(d.worker).toUpperCase(),bold,20,270),{x:M+6,y:top-24,size:20,font:bold,color:ink});let period=clean(d.period).replace(/^\s*Per[ií]odo\s*:\s*/i,'').trim();center(p,fit('Periodo: '+period,reg,8.5,300),300,W-M-8,top-9,8.5,reg,ink)
+ let y=top-42;const x0=M+6,x2=300,x4=W-M-6;p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,color:gray,borderWidth:.5,borderColor:line});p.drawText('Fecha',{x:x0+48,y:y-13,size:9,font:bold,color:ink});p.drawText('Horas',{x:x2+18,y:y-13,size:9,font:bold,color:ink});right(p,'Valor dia',x4-10,y-13,9,bold);y-=18
+ for(const r of (d.rows||[]).slice(0,7)){p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,borderWidth:.35,borderColor:line});p.drawText(fit(r[0],reg,8,240),{x:x0+8,y:y-13,size:8,font:reg,color:ink});p.drawText(clean(r[1]),{x:x2+22,y:y-13,size:8,font:reg,color:ink});right(p,r[2],x4-8,y-13,8,reg);y-=18}
+ p.drawRectangle({x:x0,y:y-22,width:x4-x0,height:22,color:gray,borderWidth:.6,borderColor:line});p.drawText(clean(d.totalHours||'Total horas:'),{x:x0+8,y:y-15,size:9.5,font:bold,color:ink});right(p,d.total||'TOTAL:',x4-8,y-16,12,bold);y-=29
+ p.drawRectangle({x:x0,y:y-20,width:x4-x0,height:20,color:pale,borderWidth:.5,borderColor:line});p.drawText('Ajustes adicionales',{x:x0+8,y:y-15,size:12,font:bold,color:ink});y-=20
+ for(const raw of (d.adjustments||[]).filter(Boolean).slice(0,3)){const a=parseAdjustment(raw),c=a.negative?red:ink;p.drawRectangle({x:x0,y:y-18,width:x4-x0,height:18,color:white,borderWidth:.35,borderColor:line});p.drawText(fit(a.label,reg,9,400),{x:x0+8,y:y-13,size:9,font:reg,color:ink});p.drawText(a.sign,{x:x4-92,y:y-14,size:15,font:bold,color:a.negative?red:green});right(p,a.value,x4-8,y-13,10.5,bold,c);y-=18}
+ p.drawRectangle({x:x0,y:y-25,width:x4-x0,height:25,color:pale,borderWidth:.5,borderColor:line});right(p,d.grandTotal||'GRAN TOTAL:',x4-10,y-18,16,bold);y-=36
+ const footerLines=clean(d.footer).split('\n').filter(Boolean),status=footerLines.find(s=>/^Estado:/i.test(s))||'Estado: Pendiente';p.drawText(status,{x:x0+6,y,size:9.5,font:bold,color:ink});p.drawText('Firma quien paga',{x:x0+70,y:y-29,size:8,font:reg,color:ink});p.drawLine({start:{x:x0+8,y:y-19},end:{x:x0+175,y:y-19},thickness:.7,color:ink});p.drawText('Firma quien recibe',{x:x0+360,y:y-29,size:8,font:reg,color:ink});p.drawLine({start:{x:x0+300,y:y-19},end:{x:x4-8,y:y-19},thickness:.7,color:ink})
+ // Hoja final SIEMPRE vertical 5.5 x 8.5. Se incrusta el diseño horizontal sin rotarlo ni rediseñarlo.
+ const sourceBytes=await source.save(),out=await PDFDocument.create(),[embedded]=await out.embedPdf(sourceBytes,[0]);const pageW=5.5*72,pageH=8.5*72,margin=8,scale=(pageW-2*margin)/W,drawW=W*scale,drawH=H*scale,finalPage=out.addPage([pageW,pageH]);finalPage.drawPage(embedded,{x:(pageW-drawW)/2,y:pageH-margin-drawH,width:drawW,height:drawH})
+ const bytes=await out.save();return new Response(bytes,{headers:{'content-type':'application/pdf','content-disposition':'inline; filename="liquidacion-media-carta-pagina-vertical.pdf"','cache-control':'no-store'}})
+}catch(e){return Response.json({error:e.message},{status:500})}}
