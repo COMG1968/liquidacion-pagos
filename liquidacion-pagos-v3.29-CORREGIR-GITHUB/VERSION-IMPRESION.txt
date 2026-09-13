@@ -1,0 +1,3 @@
+VERSION v3.29
+MEDIA CARTA VERTICAL 5.5 x 8.5
+Este archivo confirma que la version correcta fue subida a GitHub.
