@@ -3,6 +3,7 @@ import PdfHalfLetterButton from './PdfHalfLetterButton'
 import AdvancedReports from './AdvancedReports'
 import PaymentManager from './PaymentManager'
 import InlineLiquidationPayment from './InlineLiquidationPayment'
+import WorkerCurrentAccount from './WorkerCurrentAccount'
 export const metadata={title:'Liquidación de Pagos',description:'Control de pagos por horas'}
 
 const printEnhancer=`
@@ -20,5 +21,5 @@ const printEnhancer=`
 })();
 `;
 export default function RootLayout({children}){
- return <html lang="es"><body>{children}<InlineLiquidationPayment/><PaymentManager/><AdvancedReports/><PdfHalfLetterButton/><script dangerouslySetInnerHTML={{__html:printEnhancer}}/></body></html>
+ return <html lang="es"><body>{children}<InlineLiquidationPayment/><WorkerCurrentAccount/><PaymentManager/><AdvancedReports/><PdfHalfLetterButton/><script dangerouslySetInnerHTML={{__html:printEnhancer}}/></body></html>
 }
