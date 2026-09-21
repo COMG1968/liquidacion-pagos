@@ -121,7 +121,7 @@ Usa la contraseña temporal entregada por el administrador. En tu primer ingreso
  <header className="hero"><div><h1>Liquidación de Pagos</h1><p>{isAdmin?'Panel administrador':`Portal del trabajador${workers[0]?.nombre?' · '+workers[0].nombre:''}`}</p></div><button className="logout no-print" onClick={logout}>Cerrar sesión</button></header>
  {isAdmin?<nav className="nav no-print"><button onClick={()=>{reset();setTab('new')}}>➕ Nueva liquidación</button><button onClick={()=>setTab('workers')}>👥 Trabajadores</button><button onClick={()=>{loadAccessUsers();setTab('access')}}>🔐 Accesos</button><button className={pendingReview>0?'primary':''} onClick={()=>setTab('received')}>📥 Liquidaciones recibidas {pendingReview>0&&<span className="notify">{pendingReview}</span>}</button><button onClick={()=>setTab('history')}>📋 Historial</button><button onClick={()=>setTab('account')}>💳 Cuenta corriente</button><button onClick={()=>setTab('reports')}>📊 Informes</button></nav>:<nav className="nav worker-nav no-print"><button onClick={()=>{reset();if(workers[0])chooseWorker(String(workers[0].id));setTab('new')}}>📝 Mi liquidación</button><button onClick={()=>setTab('history')}>📋 Mis liquidaciones</button></nav>}
 
- {tab==='account'&&<div className="no-print" style={{display:'none'}}>CUENTA_CORRIENTE_ACTIVA</div>}
+ {tab==='account'&&<div id="cuenta-corriente-activa" className="no-print" style={{display:'none'}}></div>}
 
  {isAdmin&&tab==='workers'&&<section className="card no-print"><h2>Trabajadores</h2><div className="grid">
  <div className="field"><label>Nombre</label><input value={name} onChange={e=>setName(e.target.value)}/></div>
