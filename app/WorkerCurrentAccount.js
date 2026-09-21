@@ -29,7 +29,7 @@ export default function WorkerCurrentAccount(){
   <p>Historial de liquidaciones y pagos. Los abonos individuales permanecen en su liquidación. Desde aquí también puedes registrar un pago global y distribuirlo desde la liquidación que elijas hacia las siguientes pendientes.</p>
   {isAdmin&&<div className="field"><label>Trabajador</label><select value={wid} onChange={e=>setWid(e.target.value)}><option value="">Seleccionar...</option>{workers.map(w=><option key={w.id} value={w.id}>{w.nombre}</option>)}</select></div>}
   {!wid?<p>Selecciona un trabajador para consultar su cuenta corriente.</p>:loading?<p>Cargando cuenta corriente…</p>:<>
-   <div className="summary"><div className="stat">Liquidado<b>{money(totals.original)}</b></div><div className="stat">Abonos / pagos<b>{money(totals.paid)}</b></div><div className="stat">SALDO TOTAL PENDIENTE<b>{money(totals.pending)}</b></div></div>
+   <div className="account-summary"><div className="account-mini">Liquidado <b>{money(totals.original)}</b></div><div className="account-mini">Abonos / pagos <b>{money(totals.paid)}</b></div><div className="account-pending">SALDO TOTAL PENDIENTE <b>{money(totals.pending)}</b></div></div>
    {isAdmin&&totals.pending>0&&<><h3>Registrar abono al saldo total</h3><div className="grid">
     <div className="field"><label>Valor del abono</label><input type="number" step=".01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={money(totals.pending)}/></div>
     <div className="field"><label>Fecha</label><input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)}/></div>
