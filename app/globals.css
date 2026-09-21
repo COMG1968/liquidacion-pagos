@@ -28,3 +28,17 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px so
  .adjustments-print{position:static!important;display:block!important;min-height:1.05in!important;margin:.07in 0!important;padding:.08in .10in!important;background:#f5f5f5!important;border:1px solid #bbb!important}.adjustments-print>h3{position:static!important;font-size:14pt!important;margin:0 0 .05in!important;padding-bottom:.04in!important;border-bottom:1px solid #888!important;font-weight:900!important}.adjustments-print>.grid{display:none!important}.adjustments-print>p:not(.total),.adjustment-line{display:block!important;text-align:right!important;font-size:11pt!important;margin:.035in 0!important;font-weight:700!important}.adjustments-print>.total{text-align:right!important;font-size:18pt!important;margin:.07in 0 0!important;padding-top:.05in!important;border-top:2px solid #333!important;font-weight:900!important}
  .receipt-print>.print-only:last-of-type{margin-top:.08in!important;padding-top:.06in!important;border-top:1px solid #777!important}.receipt-print>.print-only:last-of-type p{font-size:9.5pt!important;line-height:1.15!important;margin:.04in 0!important}.receipt-print input,.receipt-print select,.receipt-print textarea,.receipt-print button{display:none!important}.report-print{display:block!important;width:5.20in!important;max-width:5.20in!important;max-height:8.18in!important}
 }
+
+/* Dashboard visual refresh */
+.hero{background:linear-gradient(135deg,#f58220,#d96400)}
+.hero .brand-name{font-size:14px;font-weight:900;letter-spacing:1.5px;margin-bottom:4px}
+.logout{color:#b84f00}
+.nav .nav-new{background:#24764a;color:#fff}
+@keyframes receivedPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(245,130,32,.15)}50%{transform:scale(1.025);box-shadow:0 0 0 7px rgba(245,130,32,.28)}}
+.nav .nav-received-alert{background:#f58220;color:#fff;animation:receivedPulse 1.05s ease-in-out infinite}
+.account-summary{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:15px 0}
+.account-mini{background:#f2f6fb;border-radius:10px;padding:8px 11px;font-size:12px;min-width:135px}
+.account-mini b{display:block;font-size:14px;margin-top:2px}
+.account-pending{background:#fff3f3;border:1px solid #efb4b4;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:900;color:#b42318;min-width:230px}
+.account-pending b{display:block;font-size:21px;margin-top:2px;color:#b42318}
+@media(max-width:700px){.account-summary{display:grid;grid-template-columns:1fr 1fr}.account-pending{grid-column:1/-1;min-width:0}.account-mini{min-width:0}}
