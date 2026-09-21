@@ -4,24 +4,41 @@ import {createClient} from '@supabase/supabase-js'
 const sb=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0))
 const date=d=>d?new Date(d+'T12:00:00').toLocaleDateString('es-US',{month:'2-digit',day:'2-digit',year:'numeric'}):''
+const today=()=>new Date().toISOString().slice(0,10)
 
 export default function WorkerCurrentAccount(){
- const [workers,setWorkers]=useState([]),[isAdmin,setIsAdmin]=useState(false),[profile,setProfile]=useState(null),[show,setShow]=useState(false)
- const [wid,setWid]=useState(''),[rows,setRows]=useState([]),[loading,setLoading]=useState(false)
- useEffect(()=>{const check=()=>{setShow(!!document.getElementById('cuenta-corriente-activa'))};check();const o=new MutationObserver(check);o.observe(document.body,{childList:true,subtree:true,characterData:true});return()=>o.disconnect()},[])
- useEffect(()=>{if(!show)return;(async()=>{const {data:{session}}=await sb.auth.getSession();if(!session)return;const [{data:w},{data:p}]=await Promise.all([sb.from('trabajadores').select('id,nombre').eq('activo',true).order('nombre'),sb.from('usuarios_app').select('rol,trabajador_id').eq('user_id',session.user.id).maybeSingle()]);setWorkers(w||[]);setProfile(p);setIsAdmin(p?.rol==='administrador');if(p?.rol==='trabajador'&&p.trabajador_id)setWid(String(p.trabajador_id))})()},[show])
- useEffect(()=>{if(wid)load()},[wid])
- async function load(){setLoading(true);const {data,error}=await sb.from('v_cuenta_corriente_trabajador').select('*').eq('trabajador_id',Number(wid)).order('fecha_desde',{ascending:true});setLoading(false);if(error){console.error(error);return}setRows(data||[])}
+ const [workers,setWorkers]=useState([]),[isAdmin,setIsAdmin]=useState(false),[show,setShow]=useState(false)
+ const [wid,setWid]=useState(''),[rows,setRows]=useState([]),[payments,setPayments]=useState([]),[methods,setMethods]=useState([]),[loading,setLoading]=useState(false)
+ const [amount,setAmount]=useState(''),[payDate,setPayDate]=useState(today()),[method,setMethod]=useState(''),[note,setNote]=useState(''),[start,setStart]=useState('')
+ useEffect(()=>{const check=()=>setShow(!!document.getElementById('cuenta-corriente-activa'));check();const o=new MutationObserver(check);o.observe(document.body,{childList:true,subtree:true});return()=>o.disconnect()},[])
+ useEffect(()=>{if(!show)return;(async()=>{const {data:{session}}=await sb.auth.getSession();if(!session)return;const [{data:w},{data:p},{data:m}]=await Promise.all([sb.from('trabajadores').select('id,nombre').eq('activo',true).order('nombre'),sb.from('usuarios_app').select('rol,trabajador_id').eq('user_id',session.user.id).maybeSingle(),sb.from('metodos_pago').select('id,nombre').eq('activo',true).order('nombre')]);setWorkers(w||[]);setMethods(m||[]);setIsAdmin(p?.rol==='administrador');if(p?.rol==='trabajador'&&p.trabajador_id)setWid(String(p.trabajador_id))})()},[show])
+ useEffect(()=>{if(wid)load();else{setRows([]);setPayments([])}},[wid])
+ async function load(){setLoading(true);const {data:r,error}=await sb.from('v_cuenta_corriente_trabajador').select('*').eq('trabajador_id',Number(wid)).order('fecha_desde');if(error){setLoading(false);return alert(error.message)};setRows(r||[]);const ids=(r||[]).map(x=>x.liquidacion_id);if(ids.length){const {data:p}=await sb.from('pagos_liquidacion').select('id,liquidacion_id,fecha,valor,concepto,metodos_pago(nombre)').in('liquidacion_id',ids).order('fecha');setPayments(p||[])}else setPayments([]);setLoading(false)}
  const totals=useMemo(()=>rows.reduce((a,r)=>({original:a.original+Number(r.valor_original||0),paid:a.paid+Number(r.abonos||0),pending:a.pending+Number(r.pendiente||0)}),{original:0,paid:0,pending:0}),[rows])
+ const pending=rows.filter(r=>Number(r.pendiente)>0)
+ async function register(){
+  const v=Number(amount);if(!wid||!v||v<=0)return alert('Indica un valor de abono válido');if(v>totals.pending+.001)return alert('El abono no puede superar el saldo total pendiente');
+  const first=start||String(pending[0]?.liquidacion_id||'');if(!first)return alert('No hay liquidaciones pendientes');
+  const target=rows.find(r=>String(r.liquidacion_id)===String(first));
+  if(!confirm('Se aplicará '+money(v)+' comenzando por la liquidación #'+first+' ('+money(target?.pendiente)+ ' pendiente) y, si sobra dinero, continuará automáticamente con las siguientes liquidaciones pendientes. ¿Continuar?'))return;
+  const {error}=await sb.rpc('registrar_pago_cuenta_corriente',{p_trabajador_id:Number(wid),p_valor:v,p_fecha:payDate,p_metodo_pago_id:method?Number(method):null,p_concepto:note||null,p_liquidacion_inicial:Number(first)});
+  if(error)return alert(error.message);setAmount('');setNote('');setStart('');await load();alert('Abono distribuido y registrado en cada liquidación correspondiente.')
+ }
  if(!show)return null
  return <div style={{maxWidth:1200,margin:'14px auto 40px',padding:'0 4px'}}><section className="card no-print"><h2>💳 Cuenta corriente por trabajador</h2>
-  <p>Historial acumulado de liquidaciones, abonos aplicados manualmente a cada liquidación y saldo pendiente.</p>
+  <p>Historial de liquidaciones y pagos. Los abonos individuales permanecen en su liquidación. Desde aquí también puedes registrar un pago global y distribuirlo desde la liquidación que elijas hacia las siguientes pendientes.</p>
   {isAdmin&&<div className="field"><label>Trabajador</label><select value={wid} onChange={e=>setWid(e.target.value)}><option value="">Seleccionar...</option>{workers.map(w=><option key={w.id} value={w.id}>{w.nombre}</option>)}</select></div>}
   {!wid?<p>Selecciona un trabajador para consultar su cuenta corriente.</p>:loading?<p>Cargando cuenta corriente…</p>:<>
    <div className="summary"><div className="stat">Liquidado<b>{money(totals.original)}</b></div><div className="stat">Abonos / pagos<b>{money(totals.paid)}</b></div><div className="stat">SALDO TOTAL PENDIENTE<b>{money(totals.pending)}</b></div></div>
-   <table><thead><tr><th>Liquidación original</th><th>Período</th><th>Valor original</th><th>Abonos</th><th>Pendiente</th><th>Estado saldo</th></tr></thead><tbody>
-    {rows.map(r=><tr key={r.liquidacion_id}><td>#{r.liquidacion_id}</td><td>{date(r.fecha_desde)} — {date(r.fecha_hasta)}</td><td>{money(r.valor_original)}</td><td>{money(r.abonos)}</td><td><b>{money(r.pendiente)}</b></td><td>{Number(r.pendiente)<=0?'✅ Cancelada':Number(r.abonos)>0?'🟠 Parcial':'🔴 Pendiente'}</td></tr>)}
-   </tbody></table>
+   {isAdmin&&totals.pending>0&&<><h3>Registrar abono al saldo total</h3><div className="grid">
+    <div className="field"><label>Valor del abono</label><input type="number" step=".01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={money(totals.pending)}/></div>
+    <div className="field"><label>Fecha</label><input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)}/></div>
+    <div className="field"><label>Forma / origen del pago</label><select value={method} onChange={e=>setMethod(e.target.value)}><option value="">Seleccionar...</option>{methods.map(m=><option key={m.id} value={m.id}>{m.nombre}</option>)}</select></div>
+    <div className="field"><label>Comenzar a aplicar en liquidación</label><select value={start} onChange={e=>setStart(e.target.value)}><option value="">Más antigua pendiente (automático)</option>{pending.map(r=><option key={r.liquidacion_id} value={r.liquidacion_id}>#{r.liquidacion_id} · pendiente {money(r.pendiente)}</option>)}</select></div>
+    <div className="field"><label>De dónde proviene / nota</label><input value={note} onChange={e=>setNote(e.target.value)} placeholder="Ej. Cash, Zelle de..., arriendo..."/></div>
+   </div><div className="actions"><button className="primary" onClick={register}>💵 Registrar y distribuir abono</button></div></>}
+   <table><thead><tr><th>Liquidación</th><th>Período</th><th>Valor original</th><th>Abonos</th><th>Pendiente</th><th>Estado saldo</th></tr></thead><tbody>{rows.map(r=><tr key={r.liquidacion_id}><td>#{r.liquidacion_id}</td><td>{date(r.fecha_desde)} — {date(r.fecha_hasta)}</td><td>{money(r.valor_original)}</td><td>{money(r.abonos)}</td><td><b>{money(r.pendiente)}</b></td><td>{Number(r.pendiente)<=0?'✅ Cancelada':Number(r.abonos)>0?'🟠 Parcial':'🔴 Pendiente'}</td></tr>)}</tbody></table>
+   <h3>Detalle de pagos / abonos</h3>{payments.length===0?<p>No hay abonos registrados.</p>:<table><thead><tr><th>Fecha</th><th>Liquidación</th><th>Valor</th><th>Forma / origen</th><th>Detalle</th></tr></thead><tbody>{payments.map(p=><tr key={p.id}><td>{date(p.fecha)}</td><td>#{p.liquidacion_id}</td><td><b>{money(p.valor)}</b></td><td>{p.metodos_pago?.nombre||'—'}</td><td>{p.concepto||'—'}</td></tr>)}</tbody></table>}
   </>}
  </section></div>
 }
