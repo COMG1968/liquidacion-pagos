@@ -8,15 +8,15 @@ export async function POST(req){
  try{
   const d=await req.json(), items=(d.rows||[]).filter(r=>Number(r.pendiente)>0)
   const pdf=await PDFDocument.create(), reg=await pdf.embedFont(StandardFonts.Helvetica), bold=await pdf.embedFont(StandardFonts.HelveticaBold)
-  const orange=rgb(.96,.45,.08), pale=rgb(1,.94,.88), ink=rgb(.08,.08,.08), red=rgb(.72,.05,.05), gray=rgb(.93,.93,.93), white=rgb(1,1,1)
+  const orange=rgb(.90,.90,.90), pale=rgb(1,.94,.88), ink=rgb(.08,.08,.08), red=rgb(.72,.05,.05), gray=rgb(.93,.93,.93), white=rgb(1,1,1)
   const W=612,H=792,M=34,rowH=44
   let page,y
   const text=(t,x,yy,size=9,font=reg,color=ink)=>page.drawText(clean(t),{x,y:yy,size,font,color})
   const right=(t,x,yy,size=9,font=reg,color=ink)=>page.drawText(clean(t),{x:x-font.widthOfTextAtSize(clean(t),size),y:yy,size,font,color})
   function header(){
    page=pdf.addPage([W,H]);page.drawRectangle({x:0,y:H-88,width:W,height:88,color:orange})
-   text('SUNLANDTRUSS',M,H-36,20,bold,white);text('ESTADO DE CUENTA CORRIENTE',M,H-61,14,bold,white)
-   right('Generado: '+fmt(d.generated),W-M,H-36,9,bold,white)
+   text('SUNLANDTRUSS',M,H-36,20,bold,ink);text('ESTADO DE CUENTA CORRIENTE',M,H-61,14,bold,ink)
+   right('Generado: '+fmt(d.generated),W-M,H-36,9,bold,ink)
    text('Trabajador: '+clean(d.worker||''),M,H-112,13,bold)
    page.drawRectangle({x:M,y:H-168,width:W-2*M,height:42,color:pale})
    text('SALDO TOTAL PENDIENTE',M+12,H-144,10,bold,red);right(money(d.pending),W-M-12,H-149,18,bold,red)
